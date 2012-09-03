@@ -11,19 +11,6 @@ Features:
 - supporet for significant part of the C std library
 - TCP/uIP stack (in development) 
 - XMODEM protocol for convenient way to share files code with the PC 
-Changelog
-1. First official release (0.1)
-2. Supports various Cortex M3/M4 platforms
-3. Shell commands (Basic UNIX like commands like ls, cp and cat which work directly with the SD/MMC interface)
-4. Choice between FP and non FP
-5. Generic platform modules (adc, can, i2c, platform data, gpio, pwm, spi, terminal, timer, uart, cpu specific module)
-6. ROM file system (ROMFS)
-7. Generic and portable SD/MMC card FAT file system
-6. Linenoise support (Command line history and navigation -- an embedded replacement for GNU readline)
-7. Samples: Morse code game, ADC poll (check romfs/)
-8. C interrupt handler support
-8. Tiny RAM patch. (It is now possible to accomodate cstdlib in PicoC running on M4, bare metal)
-9. C files can be sent to target via XMODEM protocol.
-10. Source under MIT free software license.
 
+ 
 
