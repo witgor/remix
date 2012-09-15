@@ -1,0 +1,469 @@
+
+Building remix
+==============
+
+If you decide to build your own binary image, you will need to download the source code
+and follow the platform specific remix build instructions (provided for Linux and Windows)
+to setup your build environment. Then follow the instructions below to configure and
+build your remix binary image.
+
+Configuring the build image
+===========================
+
+remix has a very flexible build system that can be used to select the components that are
+going to be part of the binary image and also to set the compile time (static) configuration.
+To use it, you need to edit a single configuration file (platform_conf.h) located in the
+platform specific directory (src/platform/<platform_name>/platform_conf.h). The configuration
+parameters are described in detail in the next paragraphs.
+
+Configuring components
+======================
+
+A remix component is a feature that can be enabled to add functionality to remix itself,
+without modifying its API. An example of component configuration from platform_conf.h is
+given below:
+
+// *****************************************************************************
+// Define here what components you want for this platform
+
+#define BUILD_BANNER
+#define BUILD_SHELL
+#define BUILD_LINENOISE
+#define BUILD_ROMFS
+#define BUILD_MMCFS
+#define BUILD_TERM
+#define BUILD_CON_GENERIC
+#define BUILD_ADC
+#define BUILD_CAN
+#define BUILD_C_INT_HANDLERS
+
+The components that can be configured in remix are:
+
+// *****************************************************************************
+
+BUILD_BANNER: This builds a nice PicoC-remix banner in ASCII. This can also be
+used (probably in the future) to print out some of the startup messages. To enable
+this module:
+
+#define BUILD_BANNER
+
+// *****************************************************************************
+
+BUILD_SHELL: This builds the remix shell (see using.txt for details on the shell). If the
+shell is not enabled, the code looks for a file called /rom/autorun.c and executes it.
+If this file is not found, a regular Lua intepreter is started on the target. To enable
+the shell over a serial connection:
+
+#define BUILD_SHELL
+#define BUILD_CON_GENERIC
+
+Enabling the shell over a TCP/IP connection is not supported yet.
+
+// *****************************************************************************
+
+BUILD_ROMFS: Enable the remix read-only filesystem. See the ROMFS documentation for
+details on using the ROM file system. To enable:
+
+#define BUILD_ROMFS
+
+// *****************************************************************************
+
+BUILD_MMCFS: Enable the remix SD/MMC FAT filesystem support. To enable:
+
+#define BUILD_MMCFS
+
+Static configuration data dependencies: MMCFS_TICK_HZ, MMCFS_TICK_MS, MMCFS_CS_PORT,
+MMCFS_CS_PIN, MMCFS_SPI_NUM
+
+// *****************************************************************************
+
+BUILD_TERM: Enable ANSI terminal support. It allows remix to interact with terminals that
+support ANSI escape sequences. Currently it works only over RS-232 connections, although
+this is not a strict requirement. You need to enable this if you want to use the term
+module. To enable:
+
+#define BUILD_TERM
+
+Static configuration data dependencies: CON_UART_ID, CON_UART_SPEED, CON_TIMER_ID,
+CON_FLOW_TYPE, TERM_LINES, TERM_COLS
+
+// *****************************************************************************
+
+BUILD_CON_GENERIC: Generic console support (checkcon_term.txt in doc/ for details ).
+Enables console acces (stdio/stdout/stderr) via a serial transport (currently RS-232,
+but others can be supported). Enable this if you want to use console input/output over
+your RS-232 connection. To enable:
+
+#define BUILD_CON_GENERIC
+
+Static configuration data dependencies: CON_UART_ID, CON_UART_SPEED, CON_TIMER_ID,
+CON_FLOW_TYPE
+
+// *****************************************************************************
+
+BUILD_ADC: Define this to build support for ADC peripherals. This must be enabled to
+use the adc module or the adc platform interface. To enable:
+
+#define BUILD_ADC
+
+Static configuration data dependencies: ADC_BIT_RESOLUTION, ADC_TIMER_FIRST_ID,
+ADC_NUM_TIMERS, BUF_ENABLE_ADC, ADC_BUF_SIZE
+
+// *****************************************************************************
+
+BUILD_C_INT_HANDLERS: Enable generic interrupt support in the C code. check
+doc/int_handlers.txt for details. To enable:
+
+#define BUILD_C_INT_HANDLERS
+
+// *****************************************************************************
+
+BUILD_LINENOISE: Enables linenoise support, check here for details. To enable:
+
+#define BUILD_LINENOISE
+
+Static configuration data dependencies: LINENOISE_HISTORY_SIZE_PICOC,
+LINENOISE_HISTORY_SIZE_SHELL, LINENOISE_AUTOSAVE_FNAME
+
+// *****************************************************************************
+
+Configuring modules
+===================
+
+You can also choose the modules that are going to be part of the remix image. Unlike
+components, the modules have a direct impact on the remix API, so choose them carefully.
+Disabling a module will save Flash space (and potentially RAM) but will also completely
+remove the possibility of using that module from the PicoC-remix system.
+
+The modules included in the build are specified by the different macros. The macros
+configure different things for the system.
+
+1. PICOC_CORE_LIBS_ROM
+
+Example:
+
+#define PICOC_CORE_LIBS_ROM\
+        MATHLINE\
+        _ROM(PICOC_CORE_LIB_STDIO, &StdioSetupFunc, &StdioFunctions[0], StdioDefs)\
+        _ROM(PICOC_CORE_LIB_CTYPE, NULL, &StdCtypeFunctions[0], NULL)\
+        _ROM(PICOC_CORE_LIB_STDBOOL, &StdboolSetupFunc, NULL, StdboolDefs)\
+        _ROM(PICOC_CORE_LIB_STDLIB, &StdlibSetupFunc, &StdlibFunctions[0], NULL)\
+        _ROM(PICOC_CORE_LIB_STRING, &StringSetupFunc, &StringFunctions[0], NULL)\
+        _ROM(PICOC_CORE_LIB_ERRNO, &StdErrnoSetupFunc, NULL, NULL)
+
+This macro is used to control the inclusion of the different core 'C' components that are
+going to accessed from PicoC.
+
+For example:
+commenting _ROM(PICOC_CORE_LIB_STRING, &StringSetupFunc, &StringFunctions[0], NULL)\
+will remove the possibility of doing 'C' string operations from PicoC once built.
+
+You can also control the inclusion of the different core variables in the final build
+image. These can vary from fixed constants such as PI to system identifiers like "stdout"
+or "stdin". This can be done with the following macro:
+
+1.a. PICOC_CORE_VARS_ROM
+
+An example:
+
+/* core system variables */
+#define PICOC_CORE_VARS_ROM\
+        _ROM(PICOC_CORE_VAR_ERRNO, &errno_variables[0])\
+        MATHLINE_VAR\
+        _ROM(PICOC_CORE_VAR_STDBOOL, &stdbool_variables[0])\
+        _ROM(PICOC_CORE_VAR_STDIO, &stdio_variables[0])
+
+NOTE: If you disable a module, be sure to disable its corresponding variables as well.
+Worst case, you'll be increasing the flash usage (but not the RAM because of the Tiny RAM
+patch. You can check doc/tinyram.txt for more information)
+
+2. PICOC_PLATFORM_LIBS_ROM
+
+An example is given below:
+
+/* platform library functions */
+#define PICOC_PLATFORM_LIBS_ROM\
+        _ROM(PICOCLIB_PD, NULL, &pd_library[0], NULL)\
+        PWMLINE\
+        _ROM(PICOCLIB_TMR, NULL, &tmr_library[0], NULL)\
+        ADCLINE\
+        _ROM(PICOCLIB_PIO, &pio_lib_setup_func, &pio_library[0], NULL)\
+        CANLINE\
+        TERMLINE\
+        _ROM(PICOCLIB_PLATFORM_LIBS, NULL, &picoc_library[0], NULL)\
+        _ROM(PICOCLIB_SPI, &spi_lib_setup_func, &spi_library[0], NULL)\
+        _ROM(PICOCLIB_UART, &uart_lib_setup_func, &uart_library[0], NULL)\
+        DISPLINE\
+        _ROM(PICOCLIB_CPU, NULL, &cpu_library[0], NULL)
+
+This macro is used to control the inclusion of the different platform components that
+can be accessed from within PicoC.
+
+Each module is defined by a _ROM(module_name, module_setup_function,
+				module_map_array, mod_setup_source) macro, where:
+
+* 'module_name' is the name of the header file with which the module can be used from PicoC
+
+* 'module_setup_function' is a function called by the PicoC runtime when the module is
+  initialized.
+
+* 'module_map_array' is a list of all the functions and prototypes exported by a module.
+
+* 'mod_setup_source' sets up the initial module definitions (check on how stdio works to get
+   a better understanding)
+
+2.b. PICOC_PLATFORM_VARS_ROM
+
+An example:
+
+#define PICOC_PLATFORM_VARS_ROM\
+        _ROM(PICOCVAR_PIO, &pio_variables[0])\
+        CANLINE_VAR\
+        TERMLINE_VAR\
+        _ROM(PICOCVAR_SPI, &spi_variables[0])\
+        _ROM(PICOCVAR_UART, &uart_variables[0])
+
+This macro controls the inclusion of a set of identifiers for the platform modules. For example,
+in the PIO module you'd say something like this:
+
+pio_pin_setdir(0, "pin_foo");
+
+Now that we have a possibility to control variables, we can include the PIO platform variable
+module and say something like this instead:
+
+pio_pin_setdir(OUTPUT, "pin_foo");
+
+All these identifiers/macros are controlled this way for remix.
+
+Please note:
+============
+
+This notation is specific to the Tiny RAM patch (also called magic RAM) and it’s not
+the only way to specify the list of modules included in the build (although it is the
+most common one). Check the Tiny RAM section of the documentation for more information
+about Tiny RAM.
+
+Static configuration data
+=========================
+
+"Static configuration" refers to the compile-time configuration. Static configuration
+parameters are hard-coded in the firmware image and can’t be changed at run-time. The
+list below provides the static configuration parameters and their semantics.
+
+// *****************************************************************************
+
+CON_UART_ID, CON_UART_SPEED, CON_TIMER_ID, CON_FLOW_TYPE:
+
+Used to configure console input/output over UART. The specified UART id will be used
+for console input/output, at the specified speed. The data format is always 8N1 (8 data
+bits, no parity, 1 stop bits)t. The specified timer ID will be used for the console
+subsystem. These variables are also used by the XMODEM (not supported in this release)
+and TERM implementations. If CON_FLOW_TYPE is defined the specified, flow control is
+applied to the console UART interface. If not defined it defaults to no flow control.
+
+// *****************************************************************************
+
+TERM_LINES, TERM_COLS
+
+Used to configure the ANSI terminal support (if enabled in the build). Used to specify
+(respectively) the number of lines and columns of the ANSI terminal.
+
+// *****************************************************************************
+
+VTMR_NUM_TIMERS, VTMR_FREQ_HZ
+
+Specify the virtual timers configuration for the platform (refer to the timer module
+documentation for details). Define VTMR_NUM_TIMERS to 0 if this feature is not used.
+
+// *****************************************************************************
+
+MMCFS_TICK_HZ, MMCFS_TICK_MS
+
+Specify the rate at which SD/MMC timer function disk_timerproc() are being called by
+the platform. On most platforms MMCFS_TICK_HZ will match VTMR_FREQ_HZ. Only needed if
+MMCFS support is enabled.
+
+// *****************************************************************************
+
+MMCFS_CS_PORT, MMCFS_CS_PIN
+
+Specify the port and pin to be used as chip select for MMCFS control of an SD/MMC card
+over SPI. Only needed if MMCFS support is enabled.
+
+// *****************************************************************************
+
+MMCFS_SPI_NUM
+
+Specify the SPI peripheral to be used by MMCFS. Only needed if MMCFS support is enabled.
+
+// *****************************************************************************
+
+PLATFORM_CPU_CONSTANTS
+
+NOTE: This static configuration data is currently not supported by remix. This will be
+enabled after interrupt support for remix is established. For now, you may ignore this.
+
+If the cpu module is enabled, this defines a list of platform-specific constants (for example
+interrupt masks) that can be accessed using the cpu.<constant name> notation. Each constant
+name must be specified instead of a specific costruct _CPU_CONSTANT(<constant name>).
+For example:
+
+#define PLATFORM_CPU_CONSTANTS\
+        _CPU_CONSTANT(INT_GPIOA),\
+        _CPU_CONSTANT(INT_GPIOB),\
+        _CPU_CONSTANT(INT_GPIOC),\
+        _CPU_CONSTANT(INT_GPIOD),\
+        _CPU_CONSTANT(INT_GPIOE),\
+        _CPU_CONSTANT(INT_UART0),\
+
+After compilation, you can access these constants from PicoC. Note that the implementation
+of this feature needs virtually no RAM at all, so you can define as many constants as you
+want here.
+
+// *****************************************************************************
+
+BUF_ENABLE_ADC
+
+If the adc module is enabled, this controls whether or not the ADC will create a buffer
+so that more than one sample per channel can be held in a buffer before being returned
+through adc_getsample or adc_getsamples. If disabled, only one conversion result will
+be buffered. This option does NOT affect the behavior of the moving average filter.
+
+// *****************************************************************************
+
+ADC_BUF_SIZE
+
+If the adc module is enabled, and BUF_ENABLE_ADC is defined, this will define the default
+buffer length allocated at startup. This does not limit buffer sizes, it only defines the
+default length. Appropriate values range from BUF_SIZE_2 to BUF_SIZE_32768, with the numeric
+component at the end being in powers of 2.
+
+// *****************************************************************************
+
+ADC_BIT_RESOLUTION
+
+If the adc module is enabled, this will define the number of bits per adc conversion result.
+This is used to determine the maximum conversion value that can be returned by the ADC.
+
+// *****************************************************************************
+
+LINENOISE_HISTORY_SIZE_PICOC
+
+If linenoise support is enabled, this defines the number of lines kept in history for
+the PicoC interpreter. If history support in PicoC is not needed, define this as 0.
+
+// *****************************************************************************
+
+LINENOISE_HISTORY_SIZE_SHELL
+
+If linenoise support is enabled, this defines the number of lines kept in history for the
+remix shell. Check here for details. If history support in the shell is not needed, define
+this as 0.
+
+// *****************************************************************************
+
+LINENOISE_AUTOSAVE_FNAME
+
+If linenoise support is enabled, the history will automatically be saved everytime the
+PicoC interpreter exits in the filename specified by this macro. This macro is optional;
+if it’s not defined, the history will not be saved automatically.
+
+// *****************************************************************************
+
+The rest of the static configuration data parameters are meant to be modified mainly by
+developers and thus they’re not listed here. One more thing you might want to configure
+for your build is the contents of the ROM file system. See the ROMFS documentation for
+details on how to do this.
+
+Invoking the build system
+=========================
+
+Once you have everything in place, all you have to do is to invoke the build system (scons)
+with the right arguments. This is a fairly easy step, although it might look intimidating
+because of the multitude of options than can be given to scons. They are used to fine tune
+the final image to your specific needs, but unless your needs are very special you won’t
+need to modify them, so don’t worry about the apparent complexity. The examples at the end
+of this section will show how easy it is to use the build system in practice.
+
+From your GNU/Linux terminal:
+
+$ scons
+  [target=fp | nofp]
+  [cpu=<cpuname>]
+  [board=<boardname>]
+  [allocator = newlib | multiple | simple]
+  [toolchain = <toolchain name>]
+  [optram = 0 | 1]
+  [romfs = verbatim]
+  [prog]
+
+Your build target is specified by two paramters: cpu and board. "cpu" gives the name of
+your CPU, and "board" the name of the board. A board can be associated with more than one
+CPU. This allows the build system to be very flexible. You can use these two options
+together or separately, as shown below:
+
+* cpu=name: build for the specified CPU. A board name will be assigned by the build
+            system automatically.
+
+* board=name: build for the specified board. The CPU name will be inferred by the
+            build system automatically.
+
+* cpu=name board=name: build for the specified board and CPU. The build script won’t
+            allow invalid CPU/board combinations.
+
+
+For board/CPU assignment, look at the beginning of the SConstruct file (the platform_list),
+it’s self-explanatory. The other options are as follows:
+
+* target=fp | nofp: specify if you want to build remix with PicoC supporting floating point
+  or no floating point. The default is "fp".
+
+* allocator = newlib | multiple | simple: choose between the default newlib allocator 
+  (newlib) which is an older version of dlmalloc, the multiple memory spaces allocator
+  (multiple) which is a newer version of dlmalloc that can handle multiple memory spaces,
+  and a very simple memory allocator (simple) that is slow and doesn’t handle
+  fragmentation very well, but it requires very few resources (Flash/RAM). You should use
+  the multiple allocator only if you need to support multiple memory spaces (for example
+  boards that have external RAM). You should use simple only on very resource-constrained
+  systems.
+
+* toolchain=<toolchain name>: this specifies the name of the toolchain used to build
+  the image.
+
+* optram=0 | 1: enables or disables the LTR patch, see the Tiny RAM documentation for more
+  details. The default is 1, which enables the Tiny RAM patch.
+
+* prog: by default, the above scons command will build only the elf (executable) file.
+  Specify "prog" to build also the platform-specific programming file where appropriate
+  (for example, on an LM3S8962 this results in a .bin file that can be programmed in the
+  CPU).
+
+* romfs = verbatim: ROMFS compilation mode. Check the ROMFS documentation for details.
+
+* boot = standard: Boot mode. standard will boot to either a shell or picoc interactive prompt.
+
+The output will be a file named picoc_remix_[target]_[cpu].elf (and also another file with
+the same name but ending in .bin/.hex if "prog" was specified for platforms that need these
+files for programming). If you want the equivalent of a "make clean", invoke "scons" as
+shown above, but add a "-c" at the end of the command line.
+
+A few examples
+==============
+
+1. $ scons cpu=lm3s8962 -c
+
+Clear previously built intermediate files.
+
+2. scons cpu=lm3s8962
+
+Build remix for the LM3S8962 CPU. The board name is detected as EK-LM3S8962
+
+3. scons board=EK-LM3S8962
+
+Build remix for the EK-LM3S8962 board. The CPU is detected as LM3S8962.
+
+4. scons cpu=lm3s8962 toolchain=codesourcery prog
+
+Build the image for the Cortex LM3S8962 CPU, but use the CodeSourcery toolchain
+instead of the default toolchain (which is a "generic" ARM GCC toolchain, usually
+the one built)

@@ -1,0 +1,118 @@
+
+remix consoles and terminals
+============================
+
+In remix, a console and a terminal serve two related, but different purposes:
+
+the console takes care of basic user input/output. They come in two flavours: serial
+consoles and TCP/IP (not supported in this release yet) consoles (note that the two can't
+coexist at the same time). The terminal enhances the console in order to take advantage
+of ANSI terminals and their advanced control functions, like explicit cursor positioning,
+clear screen and others. At this time, terminals work only over serial connections, not
+over TCP/IP (like consoles).
+
+Both components can be enabled and disabled as needed (they don't rely on each other). See
+building remix for details on how to enable and disable components.
+
+Serial consoles
+===============
+
+The serial console input/output is handled by a generic layer (src/newlib/genstd.c) that
+can be used to easily adapt the console subsystem to a variety of input/output devices.
+It needs just two functions, one for displaying characters and another one for receiving
+input with timeout:
+
+// Send/receive function types
+typedef void ( *p_std_send_char )( int fd, char c );
+typedef int ( *p_std_get_char )( s32 to );
+
+(the send faction gets an additional fd parameter that you can use to differentiate between
+the standard C stdout and stderr output streams).
+
+To set them, use std_set_send_func and std_set_get_func, both defined in inc/newlib/getstd.h.
+Usually they are called from src/common.c and configured to work over UART by default:
+
+// *****************************************************************************
+// std functions and platform initialization
+
+static void uart_send( int fd, char c )
+{
+  fd = fd;
+  platform_uart_send( CON_UART_ID, c );
+}
+
+static int uart_recv( s32 to )
+{
+  return platform_uart_recv( CON_UART_ID, TERM_TIMER_ID, to );
+}
+
+void cmn_platform_init()
+{
+  // Set the send/recv functions                          
+  std_set_send_func( uart_send );
+  std_set_get_func( uart_recv );  
+}
+
+If you need another type of serial console device (for example a dedicated console running
+over a SPI connection) just call std_set_send_func/std_set_get_func with the appropriate
+function pointers.
+
+To enable serial consoles, define the BUILD_CON_GENERIC macro in your platform's
+platform_conf.h file.
+
+TCP/IP consoles
+===============
+
+TCP/IP is not supported by remix yet.
+
+Besides standard stdio/stdout/stderr support provided by consoles, remix uses the "term"
+module to access ANSI compatible terminal emulators. It is designed to be as flexible as
+possible, thus allowing a large number of terminal emulators to be used. To enable terminal
+support, add BUILD_TERM in your platform's platform_conf.h file. To use it, initialize it
+with a call to term_init:
+
+// Terminal output function
+typedef void ( *p_term_out )( u8 );
+// Terminal input function
+typedef int ( *p_term_in )( int );
+// Terminal translate input function
+typedef int ( *p_term_translate )( u8 );
+
+// Terminal initialization
+void term_init( unsigned lines, unsigned cols, p_term_out term_out_func, 
+                p_term_in term_in_func, p_term_translate term_translate_func );
+
+The initialization function takes the physical size of the terminal emulator window
+(usually 80 lines and 25 cols) and three function pointers:
+
+p_term_out: this function will be called to output characters to the terminal. It
+            receives the character to output as its single parameter.
+
+p_term_in: this function will be called to read a character from the terminal. It
+            receives a parameter that can be either TERM_INPUT_DONT_WAIT (in which
+            case the function returns -1 immediately if no character is available)
+            or TERM_INPUT_WAIT (in which case the function will wait for the character).
+
+p_term_translate: this function translates terminal-specific codes to "term" codes.
+            The "term" codes are defined in an enum from inc/term.h:
+
+_D( KC_UP ),\
+_D( KC_DOWN ),\
+_D( KC_LEFT ),\
+..
+_D( KC_ESC ),\
+_D( KC_UNKNOWN )  
+
+By using this function, it is possible to adapt a very large number of "term emulators"
+to remix. For example, you might want to run remix in a "standalone mode" that does not
+require a PC at all, just an external LCD display and maybe a keyboard for data input.
+Your remix board can connect to this standalone terminal using its I/O pins or built in
+peripherals, for example via SPI. By writing the three functions described above, the
+effort of making remix work with this new type of device is minimal, and also writing an
+"ANSI emulator" for your terminal device is not hard.
+
+For an example, see src/main.c, where these functions are implemented for an UART connection
+with a terminal emulator program running on PC.
+
+remix also provides a PicoC module (called term) that can be used to access ANSI terminal.
+See the term module API for a full description of this module.

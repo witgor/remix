@@ -1,0 +1,27 @@
+xx.yy.zzzz  Raman Gopalan <ramangopalan@gmail.com>
+            Witold Gora <witold.remix@gmail.com>
+
+  * Official release 0.2
+  * New platform: Infineon XMC4500, Hexagonal kit
+
+04.04.2012  Raman Gopalan <ramangopalan@gmail.com>
+            Witold Gora <witold.remix@gmail.com>
+
+  * First official release (0.1)
+  * PicoC v2.1
+  * Supports the following target platforms:
+    LM3S1968, LM3S8962, LM3S6965, LM3S6918, LM3S9B92,
+    STM32F103RE, STM32F103ZE and i386
+  * Shell (commands: help, picoc, ver, recv, exit, ls or dir, cp, cat or type)
+  * Choice between FP and NO_FP
+  * Platform modules (adc, can, i2c, platform data, pio, pwm,
+    spi, terminal, timer, uart, cpu)
+  * ROM file system (ROMFS)
+  * Generic and portable SD/MMC Card FAT File System support
+  * Linenoise support (shell and picoc command line history and navigation)
+  * Samples: Morse code game, adcpoll (check romfs/)
+  * C interrupt handler support
+  * Tiny RAM patch. It is now possible to accomodate picoc/cstdlib/
+    in remix. (time.c and unistd.c not included)
+  * C files can be sent to target board's SD/MMC via XMODEM protocol
+  * Remix source under MIT license

@@ -1,0 +1,13 @@
+
+List of TODOs for remix
+=======================
+
+* TCP/IP support using the uIP stack and the "net" module
+* Remote procedure call (RPC) mechanism for remix
+* Interrupts from within remix
+* Remote file system support module to share files with PC
+* Serial multiplexer which allows using more virtual serial
+  ports over a single physical UART connection.
+* Sample PicoC-remix programs
+* remix TODOs (check src/)
+* Update documentation

@@ -1,0 +1,169 @@
+
+Using remix
+===========
+
+So, you already built and installed remix. Now it is time to (finally) have some fun with
+it :) You can compile remix with either console over UART (the default for remix v0.1).
+
+Using remix over serial connections
+===================================
+
+All you need to use remix over a serial connection is your target board connected to a PC
+running a terminal emulator program. If you're using Windows, TeraTerm is recommended. It's
+a freeware, is very powerful and also easy to use. The native Hyper Terminal progam can do
+too, as well as any most other terminal emulator programs.
+
+On GNU/Linux, you'll probably be using minicom. I use minicom too. It runs in text mode
+and is very powerful. (or any other terminal program)
+
+These are the main settings you need to look at:
+
+* Port setup: 115200 baud (38400 for STR7), 8N1(8 data bits, no parity, one stop bit).
+* Hardware flow control: none
+* Newline handling: "CR" on receive, "CR+LF" on send (some terminal programs won't give you
+  a choice here). 
+
+Also, depending on the type of your board, you'll need some way to connect the board to a
+serial port on your PC or to USB if you're using an USB to serial converter. For example
+(as already explained here), the USB port on the LM3Sxxxx boards is dual, so you can use
+it as an USB to serial converter after downloading your firmware, thus you don't need any
+other type of connection. There's no universal rule here, it all depends on your board.
+Feel free to write me a mail if you need help.
+
+Using remix over TCP/IP connections
+===================================
+
+remix doesn't support TCP/IP yet. This will probably be added in the next release.
+
+Using standalone remix on PC
+============================
+
+If you build remix for the i386 platform, you can boot your PC directly in remix! No
+underlying OS, nothing but plain remix and PicoC. It won't have any actual peripherals to
+access, but it can use the term module to run term based programs. (more samples in the
+next release) which makes it a nice demo :) Please read the i386 documentation in doc/
+for more information on this.
+
+The remix shell
+===============
+
+No matter what's your physical connection (serial, TCP/IP or you PC's monitor after booting
+remix), after you setup the PC-target board connection and press the "RESET" button on your
+board or simply press ENTER if you're using the serial connection, you should see the remix
+shell prompt (if you enabled the shell in your build). The shell is a simple interactive
+command interpreter that allows you to:
+
+* get help on shell usage with the help command
+* query the version details on your platform
+* run the PicoC interpreter in interactive mode just
+  like you'd do on a desktop machine
+* run a C program from the remix File System
+* list file names and sizes on remix file systems
+* print contents from a (text) file in the remix File System
+
+If you've enabled BUILD_BANNER, you should also see the following PicoC-remix banner on
+your terminal after you hit reset on your platform board and remix boots. This section
+can also be used (probably in the future) to print other startup messages on the terminal.
+ ____  _            ____                         _      
+|  _ \(_) ___ ___  / ___|     _ __ ___ _ __ ___ (_)_  __
+| |_) | |/ __/ _ \| |   _____| '__/ _ \ '_ ` _ \| \ \/ /
+|  __/| | (_| (_) | |__|_____| | |  __/ | | | | | |>  < 
+|_|   |_|\___\___/ \____|    |_|  \___|_| |_| |_|_/_/\_\
+
+A detailed description of the current shell commands
+====================================================
+
+* help:
+
+Show a list of all shell commands.
+
+remix# help
+
+// *****************************************************************************
+
+* ver:
+
+Print the version of the remix image installed on the board. Currently, the version only
+increments for official releases, so if there's inter-release code in the development tree,
+this isn't reflected in the version number.
+
+remix# ver
+
+// *****************************************************************************
+
+* recv
+
+Allows you to receive from the PC running the terminal emulator program, a C file via
+XMODEM and execute it on your board.
+
+remix# recv /mmc/foofname.c
+
+To use this, your remix target image must be built with support for XMODEM (see building
+for details). Also, your terminal emulation program must support sending files via the
+XMODEM protocol. Both XMODEM with checksum and XMODEM with CRC are supported, but only
+XMODEM with 128 byte packets is allowed (XMODEM with 1K packets won't work). To use this
+feature, enter "recv" at the shell prompt followed by a file name. Remix will respond
+with "Waiting for file ...". At this point you can send the file to the board via XMODEM.
+remix will receive and execute the file. Don't worry when you see 'C' characters suddenly
+appearing on your terminal after you enter this command, this is how the XMODEM transfer
+is initiated. Since XMODEM is a protocol that uses serial lines, this command is not
+available if you're using terminal over TCP/IP. 
+
+Note: With this release, it's mandatory to provide a file name after recv command. Hence,
+remix will first save your file on your board before executing. (This procedure will be
+changed in the future release -- This needs a fix in the PicoC code base).
+
+// *****************************************************************************
+
+* picoc
+
+This command allows you to start the PicoC interpreter, optionally passing command line
+arguments as you would do from a desktop machine.
+
+There are some diferences from the the PicoC in desktop version:
+
+* the command line can't be longer than 50 chars
+* If you want to execute a file from the ROM file system (or from another file system),
+  remember to prefix it with /rom. For example, to execute hello.c, do this:
+
+    remix# picoc /rom/hello.c
+
+// *****************************************************************************
+
+* ls or dir
+
+Shows a list of all the files in the file systems used by remix, as well as their size
+and the total size of the given file system.
+
+remix# ls
+
+// *****************************************************************************
+
+* cat or type
+
+Prints the content of (usually text) files on the console.
+
+remix# cat filename1 [filename2 filename3 ...]
+
+// *****************************************************************************
+
+* cp
+
+Copies a file to another file. This command can be used to copy files between different
+file systems (for example between the MMC file system and the RFS file system).
+
+remix# cp source destination
+
+Note that both source and destination must be file names.
+
+// *****************************************************************************
+
+* exit
+
+Exits the shell. This only makes sense if remix is compiled with terminal support over
+TCP/IP as it closes the telnet session to the remix board. Otherwise it just terminates
+the shell and blocks forever until you reset your board. Since we have no TCP/IP for
+remix at the moment, please ignore this option.
+
+remix# exit
+ 

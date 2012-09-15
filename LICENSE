@@ -1,0 +1,69 @@
+Copyright (c) 2012 Witold Gora and Raman Gopalan
+
+PicoC-remix is free and open source software. It is freely distributed
+under the MIT license.
+
+The PicoC part of remix is licensed under the PicoC licensing terms, which
+you can find at http://www.opensource.org/licenses/bsd-license.php.
+
+The multiple memory allocator (dlmalloc) is written by Doug Lea and is
+placed on the public domain.
+
+The FAT file system is based on FatFs, written by Elm Chan (http://elm-chan.org).
+A copy of the FatFs license can be found in the LICENSE.fatfs file.
+
+Manufacturer provided CPU support libraries are licensed under their own
+terms, check src/platform/*platform-name* for details.
+
+linenoise (https://github.com/antirez/linenoise, readline replacement for
+PicoC-Remix) is released under a BSD license.
+
+eLua's base system and documentation (by Dado Sutter and Bogdan Marinescu)
+was adapted for remix. eLua (https://github.com/elua) is distributed under
+the folllowing license.
+
+The MIT License
+
+Copyright (c) 2007, 2008, 2009, 2010 Dado Sutter and Bogdan Marinescu
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to
+deal in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+
+The rest of the remix code is also licensed under MIT, listed below:
+
+The MIT License
+
+Copyright (c) 2012 Witold Gora and Raman Gopalan
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to
+deal in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
