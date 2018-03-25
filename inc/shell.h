@@ -8,6 +8,7 @@
 #define SHELL_ERRMSG          "Invalid command, type 'help' for help\n"
 #define SHELL_MAXSIZE         50
 #define SHELL_MAX_PICOC_ARGS  3
+#define SHELL_MAX_IV_ARGS     1
 #define REMIX_VERSION	      "v0.1"
 
 int shell_init();

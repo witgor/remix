@@ -60,7 +60,7 @@ toolchain_list['devkitarm'] = toolchain_list['arm-eabi-gcc']
 platform_list = {  
   'lm3s' : { 'cpus' : [ 'LM3S1968', 'LM3S8962', 'LM3S6965', 'LM3S6918', 'LM3S9B92' ], 'toolchains' : [ 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' ] },
   'i386' : { 'cpus' : [ 'I386' ], 'toolchains' : [ 'i686-gcc' ] },
-  'stm32' : { 'cpus' : [ 'STM32F103ZE', 'STM32F103RE' ], 'toolchains' : [ 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' ] }
+  'stm32' : { 'cpus' : [ 'STM32F103ZE', 'STM32F103RE', 'STM32F103VCT6' ], 'toolchains' : [ 'arm-gcc', 'codesourcery', 'devkitarm', 'arm-eabi-gcc' ] }
 }
 
 # List of board/CPU combinations
@@ -72,6 +72,7 @@ board_list = { 'EK-LM3S8962' : [ 'LM3S8962' ],
                'ET-STM32' : [ 'STM32F103RE' ],
                'EAGLE-100' : [ 'LM3S6918' ],
                'STM3210E-EVAL' : [ 'STM32F103ZE' ],
+               'ZEISIG-GEMACHT' : [ 'STM32F103VCT6' ],
              }
 
 cpu_list = sum([board_list[i] for i in board_list],[])
@@ -111,6 +112,7 @@ file_list = { 'EK-LM3S8962' : [ ],
               'EK-LM3S9B92' : [ ],
               'PC' : [ 'hello', 'info' ],
               'ET-STM32' : [ ],
+              'ZEISIG-GEMACHT' : [ ],
               'EAGLE-100' : [ ],
 	      'STM3210E-EVAL' : [ ],
 }
@@ -303,8 +305,12 @@ if not GetOption( 'help' ):
     cstdlib/stdbool.c platform/platform_unix.c platform/library_unix.c rotable.c"""
 
   picoc_full_files = " " + " ".join( [ "src/picoc/%s" % name for name in picoc_files.split() ] )
+
+  # The iv text editor
+  iv_files = """ iv.c """
+  iv_full_files = " " + " ".join( [ "src/iv/%s" % name for name in iv_files.split() ] )
   
-  comp.Append(CPPPATH = ['inc', 'inc/newlib', 'src/platform', 'src/picoc'])
+  comp.Append(CPPPATH = ['inc', 'inc/newlib', 'src/platform', 'src/picoc', 'src/iv'])
   if comp['target'] == 'nofp':
     conf.env.Append(CPPDEFINES = ['NO_FP'])
 
@@ -344,7 +350,7 @@ if not GetOption( 'help' ):
   execfile( "src/platform/%s/conf.py" % platform )
 
   # Complete file list
-  source_files = Split( app_files + specific_files + newlib_files + picoc_full_files + module_files )
+  source_files = Split( app_files + specific_files + newlib_files + picoc_full_files + module_files + iv_full_files )
   
   comp = conf.Finish()
 
