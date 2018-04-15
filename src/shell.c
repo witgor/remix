@@ -51,10 +51,62 @@ static void shell_help( char* args )
   printf( "  ls or dir    - lists filesystems files and sizes\n" );
   printf( "  cat or type  - lists file contents\n" );
   printf( "  picoc [args] - run picoc with the given arguments\n" );
+  printf( "  iv [args]    - Edit files with iv - a vi-like text editor\n" );
   printf( "  recv [path]  - receive a file via XMODEM and save in path\n" );
   printf( "  cp <src> <dst> - copy source file 'src' to 'dst'\n" );
   printf( "  ver          - print version details\n" );
 }
+
+#if defined (BUILD_EDITOR_IV)
+
+int iv_main(int argc, char **argv);
+
+// 'iv' shell command handler
+static void shell_iv( char* args )
+{
+  int nargs = 0;
+  char* iv_argv[ SHELL_MAX_IV_ARGS + 2 ];
+  char *p, *prev, *temp;
+
+  iv_argv[ 0 ] = "iv";
+  // Process "args" if needed
+  if( *args )
+  {
+    prev = args;
+    p = strchr( args, ' ' );
+    while( p )
+    {
+      if( nargs == SHELL_MAX_IV_ARGS )
+      {
+        printf( "Too many arguments to 'iv' (maxim %d)\n", SHELL_MAX_PICOC_ARGS );
+        return;
+      }
+      *p = 0;
+      iv_argv[ nargs + 1 ] = temp = prev;
+      nargs ++;
+      prev = p + 1;
+      p = strchr( p + 1, ' ' );
+      // If the argument is quoted, remove the quotes and transform the 'alternate chars' back to space
+      if( *temp == '\'' || *temp == '"' )
+      {
+        temp ++;
+        iv_argv[ nargs ] = temp;
+        while( *temp )
+        {
+          if( *temp == SHELL_ALT_SPACE )
+            *temp = ' ';
+          temp ++;
+        }
+        *( temp - 1 ) = '\0';
+      }
+    }
+  }
+  iv_argv[ nargs + 1 ] = NULL;
+  iv_main( nargs + 1, iv_argv );
+  clearerr( stdin );
+}
+
+#endif /* #if defined (BUILD_EDITOR_IV) */
 
 // 'picoc' handler
 static void shell_picoc( char* args )
@@ -314,6 +366,7 @@ static const SHELL_COMMAND shell_commands[] =
 {
   { "help", shell_help },
   { "picoc", shell_picoc },
+  { "iv", shell_iv },
   { "recv", shell_recv },
   { "ver", shell_ver },
   { "exit", NULL },

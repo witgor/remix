@@ -18,6 +18,7 @@
 //#define BUILD_LINENOISE
 //#define BUILD_ROMFS
 #define BUILD_MMCFS
+#define BUILD_EDITOR_IV
 #define BUILD_TERM
 #define BUILD_CON_GENERIC
 #define BUILD_ADC
@@ -150,7 +151,11 @@
 #define MMCFS_TICK_HZ         10
 #define MMCFS_TICK_MS         ( 1000 / MMCFS_TICK_HZ )
 #define MMCFS_CS_PORT         0
-#define MMCFS_CS_PIN          8
+#if defined (PICOC_CPU_STM32F103VCT6)
+# define MMCFS_CS_PIN         4
+#else
+# define MMCFS_CS_PIN         8
+#endif
 #define MMCFS_SPI_NUM         0
 
 // CPU frequency (needed by the CPU module, 0 if not used)
